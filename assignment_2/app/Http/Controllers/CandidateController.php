@@ -1,7 +1,7 @@
 <?php           
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Input;
 use Illuminate\Http\Request;
 use App\Candidates;
 use App\CandidateType;
@@ -96,12 +96,14 @@ class CandidateController extends APIBaseController
     public function searchCandidate(){
         $firstName = request('firstName');
         $lastName = request('lastName');
-        $events = DB::table('candidates')
+
+        $can = DB::table('candidates')
         ->join('candidate_types','candidate_types.type_id', '=', 'candidates.candidateID')
-        ->whereBetween('events.start',[$start, $end])
-        ->select('events.id','events.name', 'events.description', 'events.start', 'events.end', 'event_types.color', 'events.location', 'events.is_Active')
+        ->where('candidates.firstName',  'LIKE', "%$firstName%")
+        ->orWhere('candidates.lastName', 'LIKE', "%$lastName%")
+        ->select('candidates.candidateID','candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','candidate_types.type_name')
         ->get();
         
-     return $this->sendResponse($events->toArray(), 'Events found successfully.');   
+     return $this->sendResponse($can->toArray(), 'Candidates found successfully.');   
     }
 }

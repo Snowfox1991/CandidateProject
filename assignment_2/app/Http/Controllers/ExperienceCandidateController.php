@@ -13,8 +13,9 @@ class ExperienceCandidateController extends APIBaseController
  	public function index(){
  		//$exp = Experiences::all();
  		//$can = Candidates::all();
-//viet 2 dong nay lam gi the
-        //cai nay minh lay du lieu á , co can dung den no' dau 
+        //viet 2 dong nay lam gi the
+        //cai nay minh lay du lieu á ,
+        // co can dung den no' dau 
  		$exp = DB::table('experiences')
  		->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
  		// ->where(['candidates.candidateID'=> 'experiences.can_id'])
@@ -101,19 +102,24 @@ class ExperienceCandidateController extends APIBaseController
         //vì bảng này mình lấy can_id foreign với candidateID 
         // Vậy có vấn đề gì ở đây nhỉ 
         //create - update - delete nó bị 
+        // $can_id = request('can_id');
+    	$exp = Experiences::with('candidate')->find($can_id);
+        // chô này muốn dữ liệu ra như thế nào nhỉ 
+        //cai1 experience no k tim ra cai can_id 
+        //no get het toan bo 
 
-    	$exp = Experiences::find($can_id);
-        
+        // $exp = Experiences::where('can_id', $can_id)
+        // ->with('candidate')->get();
         // $exp = DB::table('experience')
         // ->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
-        // ->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','experiences.yearOfExp', 'experiences.proSkill')
+        // ->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','experiences.yearOfExp', 'experiences.proSkill')->->with('candidate')->get()
         // ->find($can_id);
         if (is_null($exp)) {
-
             return $this->sendError('Candidates not found.');
         }
-        $exp = Experiences::with('candidate')->get();
-        return $this->sendResponse($exp->toArray(), 'Candidates retrieved successfully.');
+        // viet thêm dòng này ở đây thì no chẳng lấy toàn tbioj 
+       // $exp = Experiences::with('candidate')->get();
+        return $this->sendResponse($exp->toArray(), 'Experience candidates retrieved successfully.');
 
     }
 

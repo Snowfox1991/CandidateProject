@@ -12,7 +12,7 @@ class Experiences extends Eloquent
 	protected $primaryKey = 'can_id';
 
     protected $fillable = [
-    	'can_id','yearOfExp', 'proSkill', 
+    	'yearOfExp', 'proSkill', 
     ];
 
     public function candidate(){

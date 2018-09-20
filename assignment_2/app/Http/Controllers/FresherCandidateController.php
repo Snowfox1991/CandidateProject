@@ -28,7 +28,7 @@ class FresherCandidateController extends APIBaseController
  		$exp = DB::table('experiences')
  		->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
  		->get();
- 		
+
  		$validator = Validator::make($input, [
  			'firstName' => 'required',
             'lastName' => 'required',
@@ -58,5 +58,40 @@ class FresherCandidateController extends APIBaseController
         ], 201);
  	} 
 
+ 	public function show($can_id){
+        //dung can_id sao find duoc, phai dung id cua experiences chu, no lay nham mat, the can_id do la khoa chinh luon ak 
+        //đúng r á bạn
+        //vì bảng này mình lấy can_id foreign với candidateID 
+        // Vậy có vấn đề gì ở đây nhỉ 
+        //create - update - delete nó bị 
+
+    	$fresher = Freshers::with('candidate')->find($can_id);
+        
+        // $exp = DB::table('experience')
+        // ->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
+        // ->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','experiences.yearOfExp', 'experiences.proSkill')
+        // ->find($can_id);
+        if (is_null($fresher)) {
+
+            return $this->sendError('Candidates not found.');
+        }
+        // $fresher = Freshers::with('candidate')->get();
+        return $this->sendResponse($fresher->toArray(), 'Intern retrieved successfully.');
+
+    }
+    public function destroy($can_id){
+        
+    	$fresher = Freshers::find($can_id);
+
+        if (is_null($fresher)) {
+            return $this->sendError('Fresher candidate not found.');
+        }
+
+
+
+        $fresher->candidate()->delete();
+        $fresher->delete();
+        return $this->sendResponse($can_id, 'Tag deleted successfully.');
+    }
 
 }

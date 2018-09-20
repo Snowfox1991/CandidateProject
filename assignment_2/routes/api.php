@@ -20,5 +20,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::resource('experience', 'ExperienceCandidateController');
 Route::resource('fresher', 'FresherCandidateController');
 Route::resource('intern', 'InternCandidateController');
-Route::resource('candidate', 'CandidateController');
+
+Route::get('candidate', 'CandidateController@index');
+
 Route::get('candidate-type', 'CandidateTypeController@index');
+
+Route::get('candidates-search', 'CandidateTypeController@searchCandidateType');

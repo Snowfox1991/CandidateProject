@@ -16,7 +16,7 @@ class Candidates extends Eloquent
     ];
 
     public function candidate_type(){
-    	return $this->belongsTo('App\CandidateType');
+    	return $this->belongsTo('App\CandidateType', 'candidate_type_id');
     }
 // sao lai belongTo, thang exprerience chua khoa chinh cua thang candidate ma. phai la hasOne chu
     //cái này e đang còn hơi mơ hồ mấy cái hasOne, hasMany,..lỗi e 
