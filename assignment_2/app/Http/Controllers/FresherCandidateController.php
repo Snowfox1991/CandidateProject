@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Validation\Rule;
 use DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\APIBaseController as APIBaseController;
@@ -17,7 +17,7 @@ class FresherCandidateController extends APIBaseController
  		$fresh = DB::table('freshers')
  		->join('candidates', 'candidates.candidateID', '=', 'freshers.can_id')
  		// ->where(['candidates.candidateID'=> 'experiences.can_id'])
- 		->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','freshers.graduation_date', 'freshers.graduation_rank', 'freshers.education')
+ 		->select('candidates.candidateID','candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','freshers.graduation_date', 'freshers.graduation_rank', 'freshers.education')
  		->get();
 
  		return $this->sendResponse($fresh->toArray(), 'Freshers list retrieved successfully.');
@@ -25,9 +25,7 @@ class FresherCandidateController extends APIBaseController
 
  	public function store(Request $request) {
  		$input = $request->all();
- 		$exp = DB::table('experiences')
- 		->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
- 		->get();
+ 		
 
  		$validator = Validator::make($input, [
  			'firstName' => 'required',
@@ -36,12 +34,13 @@ class FresherCandidateController extends APIBaseController
             'address' => 'required',
             'phone_number' => 'required|max:11',
             'email' => 'required|string|email',
-            'candidate_type_id' => 'required|integer|between:1,3',
  			'graduation_date' => 'required',
- 			 'graduation_rank' => 'required', 
+ 			 'graduation_rank' => ['required', Rule::in(['Excellence', 'Good', 'Fair', 'Poor']), ], 
  			 'education' => 'required',
 
  		]);
+
+        $input['candidate_type_id'] = 2;
 
  		if($validator->fails()){
 
@@ -58,26 +57,42 @@ class FresherCandidateController extends APIBaseController
         ], 201);
  	} 
 
- 	public function show($can_id){
-        //dung can_id sao find duoc, phai dung id cua experiences chu, no lay nham mat, the can_id do la khoa chinh luon ak 
-        //đúng r á bạn
-        //vì bảng này mình lấy can_id foreign với candidateID 
-        // Vậy có vấn đề gì ở đây nhỉ 
-        //create - update - delete nó bị 
 
-    	$fresher = Freshers::with('candidate')->find($can_id);
-        
-        // $exp = DB::table('experience')
-        // ->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
-        // ->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','experiences.yearOfExp', 'experiences.proSkill')
-        // ->find($can_id);
-        if (is_null($fresher)) {
+    public function show($can_id){
 
+        $fresh = Freshers::with('candidate')->find($can_id);
+
+        if (is_null($fresh)) {
             return $this->sendError('Candidates not found.');
         }
-        // $fresher = Freshers::with('candidate')->get();
-        return $this->sendResponse($fresher->toArray(), 'Intern retrieved successfully.');
+        // viet thêm dòng này ở đây thì no chẳng lấy toàn tbioj 
+       // $exp = Experiences::with('candidate')->get();
+        return $this->sendResponse($fresh->toArray(), 'Experience candidates retrieved successfully.');
 
+    }
+
+
+ 	public function edit($can_id){
+        $fresh = Candidates::find($can_id);
+    }
+
+    public function update(Request $request , $can_id){
+        $fresh = Freshers::with('candidate')->find($can_id);
+
+        $fresh->graduation_date = $request->graduation_date;
+        $fresh ->graduation_rank = $request->graduation_rank;
+        $fresh ->education = $request->education;
+
+        $fresh->save();
+
+        
+        if (is_null($fresh)) {
+            return $this->sendError('Candidates not found.');
+        }
+
+        
+
+        return $this->sendResponse($fresh->toArray(), 'Fresher candidate updated successfully.');
     }
     public function destroy($can_id){
         

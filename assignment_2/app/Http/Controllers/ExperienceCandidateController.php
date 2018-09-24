@@ -31,9 +31,7 @@ class ExperienceCandidateController extends APIBaseController
 
  	public function store(Request $request) {
  		$input = $request->all();
- 		$exp = DB::table('experiences')
- 		->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
- 		->get();
+
  		$validator = Validator::make($input, [
  			'firstName' => 'required',
             'lastName' => 'required',
@@ -41,83 +39,58 @@ class ExperienceCandidateController extends APIBaseController
             'address' => 'required',
             'phone_number' => 'required|max:11',
             'email' => 'required|string|email',
-            'candidate_type_id' => 'required|integer|between:0,2',
+            // 'candidate_type_id' => 'required|integer|between:1,3',
  			'yearOfExp' => 'required|integer|between:0,100',
  			'proSkill' => 'required'
 
  		]);
-
+        //nó là 1 user e mới tạo
+        //db thì set nó là số 2 dù e đang tạo experience
+        //e đang tạo experience - e set Experience là type 1
+        //trong DB e là số 1
+        //nó tạo thành công trong khi candidate_type_id của e là của thằng khác
+        // ddể nó là 3 mà nó sẽ tạo là 3, có vấn đề gì ở đay 
+        //field dữ liệu của nó sai logic á a 
+        // k thấy sai chỗ nào cả điền là số mấy thì nó create số đó chứ 
+        //ý e là e đang tạo Experience Candidate thì type của nó là 1
+        ///nếu e nhập số khác tức là e nhập của type khác, nó báo sai
+        //sai logic thông tin á a 
+        // Đây là cố tình nhập sai còn gì nữa. Mà 
+        //dạ e đang nhờ a coi thử có cách nào khóa cái type_id lại k 
+        //giống như nếu trên web chọn sai thì nó sẽ báo lỗi, bắt chọn đúng á a 
+        // biết đúng sai là gì rồi , thì bắt nó nhập làm gì nữa, mình set luôn cho nó đi có phải nhanh không 
+        //dạ ý e là mình set luôn á a, e muốn set luôn trong quá trình nó create 
+        //Điều kiện thế nào để là 1
+        //chỉ cần tạo mới thằng Experience thì set đúng type của nó lúc chọn á a 
+        // thằng exp phải lấy type 
  		if($validator->fails()){
 
             return $this->sendError('Validation Error.', $validator->errors());       
 
         }
+        $input['candidate_type_id'] = 1;
+        // nhu vay la xong, neu mac dinh
+        //v e cmt luôn trên cái validator hay xóa luôn a 
 
- 		// $can = new Candidates([
- 		// 	'firstName' => $request->firstName,
- 		// 	'lastName' => $request->lastName,
- 		// 	'birthdate' => $request->birthdate,
- 		// 	'address' => $request->address,
- 		// 	'phone_number' => $request->phone_number,
- 		// 	'email' -> $request->email,
- 		// ]);
- 		//$exp = new Experiences([
- 			//'yearOfExp' => ,
- 			//'proSkill' => $request->proSkill,
- 		//]);
-       // dd($input);
-        ////$exp->save();
-        //dump($input);
         $can = Candidates::create($input);
-        //loi ngay phia tren roi
-        //candidate_type_id
-        $can->experience()->save(new Experiences($input));
-        // phai theo thu tu the nay moi dc
-        //v là e có cần phải thêm trường $fillable của thằng Candidate k a 
-        //fillable cuar thawng nao thi thang ay them thoi, k them cua thang khac 
-        //ủa v sao mà nó biết mình tạo cái experience thì phải có candidate_type là 1 v a 
-        // cai can type do minh phai tu truyen vao thoi 
-        //can_id bị null giờ có cách nào 
-        // duoc roi do 
-       // $exp->candidates->create();
-        // cái này phải candi truoc roi moi tao dc exxp / k tao dc nhu the nay 
-        //cái candidate e tạo dc rồi 
-        //e đang muốn tìm cách cho nó kiểm tra nếu đúng là exp thì nó sẽ vào thằng này 
 
-        // biến can này ở đâu ra 
-        //mình đang muốn thử cái input experience lồng ghép vào luôn 
+        $experience = $can->experience()->save(new Experiences($input));
+        //dump($experience);
+        
 
- 		// $exp->candidate()->associate($can);
- 		//lồng kiểu này nó có tính k ạ 
-
-       // $exp = Experiences::create($input);
  		return response()->json([
             'message' => 'Successfully created an Experience Candidates!'
         ], 201);
  	}
 
  	public function show($can_id){
-        //dung can_id sao find duoc, phai dung id cua experiences chu, no lay nham mat, the can_id do la khoa chinh luon ak 
-        //đúng r á bạn
-        //vì bảng này mình lấy can_id foreign với candidateID 
-        // Vậy có vấn đề gì ở đây nhỉ 
-        //create - update - delete nó bị 
-        // $can_id = request('can_id');
-    	$exp = Experiences::with('candidate')->find($can_id);
-        // chô này muốn dữ liệu ra như thế nào nhỉ 
-        //cai1 experience no k tim ra cai can_id 
-        //no get het toan bo 
 
-        // $exp = Experiences::where('can_id', $can_id)
-        // ->with('candidate')->get();
-        // $exp = DB::table('experience')
-        // ->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
-        // ->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','experiences.yearOfExp', 'experiences.proSkill')->->with('candidate')->get()
-        // ->find($can_id);
+    	$exp = Experiences::with('candidate')->find($can_id);
+
         if (is_null($exp)) {
             return $this->sendError('Candidates not found.');
         }
-        // viet thêm dòng này ở đây thì no chẳng lấy toàn tbioj 
+        
        // $exp = Experiences::with('candidate')->get();
         return $this->sendResponse($exp->toArray(), 'Experience candidates retrieved successfully.');
 
@@ -128,34 +101,17 @@ class ExperienceCandidateController extends APIBaseController
     }
 
     public function update(Request $request , $can_id){
-        
-    	$input = $request->all();
+        $exp = Experiences::with('candidate')->find($can_id);
 
-        $validator = Validator::make($input, [
-			'yearOfExp' => 'required|integer|between:0,100',
- 			'proSkill' => 'required',
-        ]);
+        $exp->yearOfExp = $request->yearOfExp;
+        $exp ->proSkill = $request->proSkill;
 
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());       
-        }
-
-        // $exp = Experiences::find($can_id);
-        // if (is_null($exp)) {
-        //     return $this->sendError('Candidates not found.');
-        // }
-
-        $exp->yearOfExp = $input['yearOfExp'];
-        $exp->proSkill = $input['proSkill'];
-        
         $exp->save();
- 
+
         
-   //      $exp = DB::table('experiences')
- 		// ->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
- 		// ->select('candidates.firstName', 'candidates.lastName', 'candidates.birthdate', 'candidates.address', 'candidates.phone_number', 'candidates.email','experiences.yearOfExp', 'experiences.proSkill')
- 		// ->get();
-        
+        if (is_null($exp)) {
+            return $this->sendError('Candidates not found.');
+        }
 
         return $this->sendResponse($exp->toArray(), 'Experienced candidate updated successfully.');
     }

@@ -23,9 +23,6 @@ class InternCandidateController extends APIBaseController
 
  	public function store(Request $request) {
  		$input = $request->all();
- 		$exp = DB::table('experiences')
- 		->join('candidates', 'candidates.candidateID', '=', 'experiences.can_id')
- 		->get();
  		$validator = Validator::make($input, [
  			'firstName' => 'required',
             'lastName' => 'required',
@@ -33,13 +30,12 @@ class InternCandidateController extends APIBaseController
             'address' => 'required',
             'phone_number' => 'required|max:11',
             'email' => 'required|string|email',
-            'candidate_type_id' => 'required|integer|between:1,3',
  			'major' => 'required',
  			'semester' => 'required', 
  			'university_name' => 'required',
 
  		]);
-
+        $input['candidate_type_id'] = 3;
  		if($validator->fails()){
 
             return $this->sendError('Validation Error.', $validator->errors());       
@@ -76,6 +72,28 @@ class InternCandidateController extends APIBaseController
         return $this->sendResponse($intern->toArray(), 'Intern retrieved successfully.');
 
     }
+
+        public function edit($can_id){
+        $intern = Candidates::find($can_id);
+    }
+
+    public function update(Request $request , $can_id){
+        $intern = Experiences::with('candidate')->find($can_id);
+
+        $intern->major = $request->yearOfExp;
+        $intern ->semester = $request->proSkill;
+        $intern ->university_name = $request->university_name;
+
+        $intern->save();
+
+        
+        if (is_null($intern)) {
+            return $this->sendError('Candidates not found.');
+        }
+
+        return $this->sendResponse($intern->toArray(), 'Experienced candidate updated successfully.');
+    }
+
     public function destroy($can_id){
         
     	$intern = Interns::find($can_id);
